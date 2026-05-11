@@ -14,11 +14,16 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
+    username TEXT,
     email TEXT UNIQUE NOT NULL,
     profile_photo TEXT,
     about TEXT DEFAULT 'Hey there! I am using ChatConnect',
     last_seen TIMESTAMPTZ DEFAULT NOW(),
     online BOOLEAN DEFAULT FALSE,
+    bio TEXT,
+    profession TEXT,
+    skills TEXT[] DEFAULT '{}',
+    availability TEXT DEFAULT 'available',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -92,6 +97,38 @@ CREATE INDEX idx_groups_chat_id ON public.groups(chat_id);
 CREATE INDEX idx_groups_admin_id ON public.groups(admin_id);
 
 -- ============================================
+-- 5A. REVIEWS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.reviews (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    reviewer_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    reviewed_user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    review TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for faster queries
+CREATE INDEX idx_reviews_reviewed_user_id ON public.reviews(reviewed_user_id);
+CREATE INDEX idx_reviews_reviewer_id ON public.reviews(reviewer_id);
+
+-- ============================================
+-- 5B. TYPING STATUS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.typing_status (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    chat_id UUID NOT NULL REFERENCES public.chats(id) ON DELETE CASCADE,
+    typing BOOLEAN DEFAULT FALSE,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, chat_id)
+);
+
+-- Index for faster queries
+CREATE INDEX idx_typing_status_chat_id ON public.typing_status(chat_id);
+CREATE INDEX idx_typing_status_user_id ON public.typing_status(user_id);
+
+-- ============================================
 -- 6. ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================
 
@@ -101,6 +138,8 @@ ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.typing_status ENABLE ROW LEVEL SECURITY;
 
 -- USERS POLICIES
 -- Users can view all other users (for search/discovery)
@@ -208,6 +247,27 @@ CREATE POLICY "Users can create groups"
 CREATE POLICY "Admin can update group"
     ON public.groups FOR UPDATE
     USING (admin_id = auth.uid());
+
+-- REVIEWS POLICIES
+-- Users can view all reviews
+CREATE POLICY "Users can view all reviews"
+    ON public.reviews FOR SELECT
+    USING (true);
+
+-- Users can create reviews (only for other users, not themselves)
+CREATE POLICY "Users can create reviews"
+    ON public.reviews FOR INSERT
+    WITH CHECK (reviewer_id = auth.uid() AND reviewed_user_id != auth.uid());
+
+-- Users can update their own reviews
+CREATE POLICY "Users can update own reviews"
+    ON public.reviews FOR UPDATE
+    USING (reviewer_id = auth.uid());
+
+-- Users can delete their own reviews
+CREATE POLICY "Users can delete own reviews"
+    ON public.reviews FOR DELETE
+    USING (reviewer_id = auth.uid());
 
 -- ============================================
 -- 7. FUNCTIONS AND TRIGGERS

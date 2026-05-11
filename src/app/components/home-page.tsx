@@ -51,9 +51,9 @@ export function HomePage({ user, onLogout }: HomePageProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <UserSearch onChatCreated={() => {}} />
-                <Button 
-                  variant="outline" 
+                <UserSearch onChatCreated={() => { }} />
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={onLogout}
                   className="flex items-center space-x-2"
@@ -93,8 +93,8 @@ export function HomePage({ user, onLogout }: HomePageProps) {
               <p className="text-gray-600">
                 Send instant messages to your friends and family in real-time.
               </p>
-              <Button className="w-full mt-4" disabled>
-                Coming Soon
+              <Button className="w-full mt-4">
+                Available
               </Button>
             </CardContent>
           </Card>

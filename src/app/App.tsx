@@ -1,301 +1,142 @@
-import { useState, useEffect } from 'react';
-import { supabase, User } from '@/lib/supabase';
-import { AuthPage } from '@/app/components/auth-page';
-import { ChatApp } from '@/app/components/chat-app';
-import { DatabaseSetupChecker } from '@/app/components/database-setup-checker';
+import { Suspense, lazy } from 'react';
+import { useAuth } from '@/app/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { Input } from './components/ui/input';
+import { Button } from './components/ui/button';
+
+// Lazy load components for production performance
+const AuthPage = lazy(() => import('@/app/components/auth-page').then(m => ({ default: m.AuthPage })));
+const ChatApp = lazy(() => import('@/app/components/chat-app').then(m => ({ default: m.ChatApp })));
+const DatabaseSetupChecker = lazy(() => import('@/app/components/database-setup-checker').then(m => ({ default: m.DatabaseSetupChecker })));
+
+const LoadingFallback = ({ message = "Loading..." }) => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+      <p className="mt-4 text-gray-600 font-medium">{message}</p>
+    </div>
+  </div>
+);
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [setupComplete, setSetupComplete] = useState(false);
-  const [checkingSetup, setCheckingSetup] = useState(true);
+  const {
+    user,
+    loading,
+    checkingSetup,
+    setupComplete,
+    verificationEmail,
+    isResettingPassword,
+    newPassword,
+    setNewPassword,
+    resetError,
+    resetSuccess,
+    handleLogin,
+    handleSignup,
+    handleVerifyOtp,
+    handleResendOtp,
+    handleForgotPassword,
+    handleGoogleLogin,
+    handleLogout,
+    handleResetPassword,
+    setSetupComplete,
+    checkUser,
+    setIsResettingPassword,
+    setUser
+  } = useAuth();
 
-  // Check if user is already logged in when app loads
-  useEffect(() => {
-    checkDatabaseAndUser();
-  }, []);
-
-  // Function to check database setup and user session
-  const checkDatabaseAndUser = async () => {
-    try {
-      // First check if database tables exist
-      // This may error if tables don't exist - this is expected and handled
-      const { error: dbError } = await supabase
-        .from('users')
-        .select('id')
-        .limit(1);
-
-      if (dbError) {
-        // Expected error when database is not set up yet
-        // No need to log - just show setup screen
-        setSetupComplete(false);
-        setCheckingSetup(false);
-        setLoading(false);
-        return;
-      }
-
-      // Database exists, mark setup as complete
-      setSetupComplete(true);
-      setCheckingSetup(false);
-
-      // Now check for user session
-      await checkUser();
-    } catch (error) {
-      // Expected error when database is not set up
-      setSetupComplete(false);
-      setCheckingSetup(false);
-      setLoading(false);
-    }
-  };
-
-  // Function to check current user session
-  const checkUser = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // Get user profile from users table
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle(); // Use maybeSingle() instead of single() to handle missing profiles
-
-        if (error) {
-          console.error('Error fetching user profile:', error);
-          setLoading(false);
-          return;
-        }
-
-        if (!userData) {
-          // User profile doesn't exist - create it
-          console.log('User profile not found, creating...');
-          const { data: newProfile, error: createError } = await supabase
-            .from('users')
-            .insert({
-              id: session.user.id,
-              email: session.user.email || '',
-              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
-              about: 'Hey there! I am using ChatConnect',
-              online: false,
-            })
-            .select()
-            .single();
-
-          if (createError) {
-            console.error('Error creating user profile:', createError);
-            // If creation fails, sign out the user
-            await supabase.auth.signOut();
-            setLoading(false);
-            return;
-          }
-
-          if (newProfile) {
-            setUser(newProfile);
-          }
-        } else {
-          setUser(userData);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking user session:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle login
-  const handleLogin = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (data.user) {
-      // Get user profile
-      const { data: userData, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Error fetching user profile after login:', profileError);
-        throw new Error('Failed to load user profile');
-      }
-
-      if (!userData) {
-        // Create profile if it doesn't exist
-        const { data: newProfile, error: createError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            email: data.user.email || email,
-            name: data.user.user_metadata?.name || email.split('@')[0],
-            about: 'Hey there! I am using ChatConnect',
-            online: false,
-          })
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating user profile:', createError);
-          throw new Error('Failed to create user profile');
-        }
-
-        if (newProfile) {
-          setUser(newProfile);
-        }
-      } else {
-        setUser(userData);
-      }
-    }
-  };
-
-  // Handle signup
-  const handleSignup = async (email: string, password: string, name: string) => {
-    try {
-      console.log('Starting signup process for:', email);
-      
-      // Validate inputs
-      if (!email || !password || !name) {
-        throw new Error('Please fill in all fields');
-      }
-
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      console.log('Calling Supabase signUp...');
-      
-      // Create user directly with Supabase Auth
-      const { data: authData, error: signupError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: name,
-          },
-        },
-      });
-
-      console.log('SignUp response:', { authData, signupError });
-
-      if (signupError) {
-        console.error('Supabase signup error:', signupError);
-        
-        // Handle specific error cases
-        if (signupError.message.includes('User already registered')) {
-          throw new Error('This email is already registered. Please login instead.');
-        }
-        
-        if (signupError.message.includes('Invalid email')) {
-          throw new Error('Please enter a valid email address');
-        }
-        
-        throw new Error(signupError.message);
-      }
-
-      if (!authData.user) {
-        throw new Error('Failed to create user - no user data returned');
-      }
-
-      console.log('User created in auth, creating profile...');
-
-      // Create user profile in the users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email,
-          name: name,
-          about: 'Hey there! I am using ChatConnect',
-          online: false,
-        });
-
-      if (profileError) {
-        console.error('Error creating user profile:', profileError);
-        // Profile creation failed, but auth user was created
-        // The auto-fix on login will handle this
-      } else {
-        console.log('Profile created successfully');
-      }
-
-      console.log('Signing out user...');
-      
-      // Sign out the user so they can login manually
-      // This ensures the session is clean
-      await supabase.auth.signOut();
-
-      console.log('Signup complete!');
-
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      
-      // Provide user-friendly error messages
-      if (error.message) {
-        throw new Error(error.message);
-      }
-      
-      throw new Error('Signup failed. Please try again or check your internet connection.');
-    }
-  };
-
-  // Handle logout
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
-  // Show loading state while checking setup
+  // Loading state - only show one loading at a time
   if (checkingSetup) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Checking database setup...</p>
-        </div>
-      </div>
-    );
+    return <LoadingFallback message="Checking database setup..." />;
   }
 
-  // Show setup checker if database not ready
+  // Database not set up
   if (!setupComplete) {
-    return <DatabaseSetupChecker onSetupComplete={() => {
-      setSetupComplete(true);
-      checkUser();
-    }} />;
+    return (
+      <Suspense fallback={<LoadingFallback message="Loading setup checker..." />}>
+        <DatabaseSetupChecker onSetupComplete={() => {
+          setSetupComplete(true);
+          checkUser();
+        }} />
+      </Suspense>
+    );
   }
 
-  // Show loading state
-  if (loading) {
+  // Password reset from email link
+  if (isResettingPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Reset Password</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {resetSuccess ? (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">✓</span>
+                </div>
+                <p className="font-semibold text-green-700">Password reset successful!</p>
+                <p className="text-sm text-gray-600 mt-2">Redirecting to login...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                {resetError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                    {resetError}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">New Password</label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  Reset Password
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // Show appropriate page based on authentication status
+  // Loading user data
+  if (loading) {
+    return <LoadingFallback message="Loading your profile..." />;
+  }
+
+  // Render only ONE layout at a time - no mixing
+  if (user) {
+    return (
+      <Suspense fallback={<LoadingFallback message="Launching Harf Workspace..." />}>
+        <div className="h-screen w-screen overflow-hidden">
+          <ChatApp user={user} onLogout={handleLogout} onUserUpdate={setUser} />
+        </div>
+      </Suspense>
+    );
+  }
+
+  // Show auth page when no user
   return (
-    <>
-      {user ? (
-        <ChatApp user={user} onLogout={handleLogout} />
-      ) : (
-        <AuthPage onLogin={handleLogin} onSignup={handleSignup} />
-      )}
-    </>
+    <Suspense fallback={<LoadingFallback message="Entering Secure Auth Zone..." />}>
+      <div className="min-h-screen w-screen overflow-auto">
+        <AuthPage 
+          onLogin={handleLogin} 
+          onSignup={handleSignup}
+          onVerifyOtp={handleVerifyOtp}
+          onResendOtp={handleResendOtp}
+          onForgotPassword={handleForgotPassword}
+          onGoogleLogin={handleGoogleLogin}
+          verificationEmail={verificationEmail}
+        />
+      </div>
+    </Suspense>
   );
 }
