@@ -9,7 +9,15 @@ export function useNetwork(currentUser: User) {
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
+    console.log('📡 Fetching network data...');
     setLoading(true);
+    
+    // Set a safety timeout
+    const timeoutId = setTimeout(() => {
+      console.warn('🕒 Network data fetch taking too long, releasing loader');
+      setLoading(false);
+    }, 5000);
+
     try {
       // 1. Fetch all other users
       const { data: usersData } = await supabase
@@ -43,6 +51,7 @@ export function useNetwork(currentUser: User) {
     } catch (error) {
       console.error('Error fetching network data:', error);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   }, [currentUser.id]);

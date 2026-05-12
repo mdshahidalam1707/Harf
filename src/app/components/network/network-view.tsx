@@ -98,68 +98,51 @@ export function NetworkView({ currentUser, onStartChat, onViewProfile }: Network
 
   return (
     <div className="flex flex-col h-full bg-gray-50 overflow-hidden">
-      {/* Header Area */}
-      <div className="bg-white border-b border-gray-100 p-4 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Network</h1>
-            <p className="text-sm text-gray-500">Manage your professional connections and follows</p>
-          </div>
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input 
-              placeholder="Search network..." 
-              className="pl-10 rounded-full bg-gray-50 border-none focus:ring-2 focus:ring-blue-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col h-full">
+        {/* Header Area - Sticky */}
+        <div className="bg-white border-b border-gray-200 shadow-sm z-20">
+          <div className="max-w-6xl mx-auto p-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-black text-gray-900 tracking-tight">My Network</h1>
+                <div className="bg-blue-50 px-3 py-1 rounded-full text-[10px] font-bold text-blue-600 uppercase tracking-wider">
+                  Professional
+                </div>
+              </div>
+              
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input 
+                  placeholder="Search network..." 
+                  className="pl-10 h-10 rounded-xl bg-gray-50 border-gray-200 focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <TabsList className="bg-gray-100/80 p-1 rounded-xl w-full flex overflow-x-auto no-scrollbar gap-1 px-1 justify-start">
+                {['suggestions', 'invitations', 'connected', 'following', 'followers'].map((t) => (
+                  <TabsTrigger 
+                    key={t}
+                    value={t} 
+                    className="flex-shrink-0 min-w-[90px] rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white text-[11px] font-bold py-2 transition-all relative"
+                  >
+                    {t === 'suggestions' ? 'Suggestions' : t.charAt(0).toUpperCase() + t.slice(1)}
+                    {t === 'invitations' && invitationCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] h-3.5 w-3.5 flex items-center justify-center rounded-full border border-white">
+                        {invitationCount}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        <div className="max-w-6xl mx-auto">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <div className="w-full overflow-x-auto scrollbar-hide border-b border-gray-200 mb-6">
-            <TabsList className="flex w-max min-w-full justify-start bg-transparent rounded-none h-auto p-0">
-              <TabsTrigger 
-                value="suggestions" 
-                className="flex-shrink-0 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 py-3 px-6 text-sm font-bold transition-all"
-              >
-                Suggestions
-              </TabsTrigger>
-              <TabsTrigger 
-                value="invitations" 
-                className="flex-shrink-0 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 py-3 px-6 text-sm font-bold relative transition-all"
-              >
-                Invitations
-                {invitationCount > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-[10px] h-5 w-5 flex items-center justify-center rounded-full">
-                    {invitationCount}
-                  </span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="connected" 
-                className="flex-shrink-0 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 py-3 px-6 text-sm font-bold transition-all"
-              >
-                Connections
-              </TabsTrigger>
-              <TabsTrigger 
-                value="following" 
-                className="flex-shrink-0 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 py-3 px-6 text-sm font-bold transition-all"
-              >
-                Following
-              </TabsTrigger>
-              <TabsTrigger 
-                value="followers" 
-                className="flex-shrink-0 rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 py-3 px-6 text-sm font-bold transition-all"
-              >
-                Followers
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="max-w-6xl mx-auto">
             {['suggestions', 'invitations', 'connected', 'following', 'followers'].map((type) => (
               <TabsContent key={type} value={type} className="mt-0 outline-none">
                 {getFilteredUsers(type as any).length === 0 ? (
@@ -210,9 +193,9 @@ export function NetworkView({ currentUser, onStartChat, onViewProfile }: Network
                 )}
               </TabsContent>
             ))}
-          </Tabs>
+          </div>
         </div>
-      </div>
+      </Tabs>
     </div>
   );
 }

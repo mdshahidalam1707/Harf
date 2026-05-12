@@ -24,7 +24,6 @@ export default function App() {
     loading,
     checkingSetup,
     setupComplete,
-    verificationEmail,
     isResettingPassword,
     newPassword,
     setNewPassword,
@@ -32,8 +31,6 @@ export default function App() {
     resetSuccess,
     handleLogin,
     handleSignup,
-    handleVerifyOtp,
-    handleResendOtp,
     handleForgotPassword,
     handleGoogleLogin,
     handleLogout,
@@ -107,11 +104,6 @@ export default function App() {
     );
   }
 
-  // Loading user data
-  if (loading) {
-    return <LoadingFallback message="Loading your profile..." />;
-  }
-
   // Render only ONE layout at a time - no mixing
   if (user) {
     return (
@@ -130,11 +122,8 @@ export default function App() {
         <AuthPage 
           onLogin={handleLogin} 
           onSignup={handleSignup}
-          onVerifyOtp={handleVerifyOtp}
-          onResendOtp={handleResendOtp}
           onForgotPassword={handleForgotPassword}
           onGoogleLogin={handleGoogleLogin}
-          verificationEmail={verificationEmail}
         />
       </div>
     </Suspense>

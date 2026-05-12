@@ -352,7 +352,7 @@ export function ChatWindow({ chatId, currentUser, otherUser, isGroup, groupName,
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView();
   };
 
   const getInitials = (name: string) => {
@@ -628,7 +628,7 @@ export function ChatWindow({ chatId, currentUser, otherUser, isGroup, groupName,
 
       {/* Search Bar Overlay */}
       {isSearching && (
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2 animate-in slide-in-from-top-2">
+        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2">
           <Search className="w-5 h-5 text-gray-400" />
           <Input 
             autoFocus
@@ -645,7 +645,7 @@ export function ChatWindow({ chatId, currentUser, otherUser, isGroup, groupName,
 
       {/* Media Gallery Modal */}
       {showMediaModal && (
-        <div className="absolute inset-0 bg-white z-50 flex flex-col animate-in slide-in-from-bottom-2">
+        <div className="absolute inset-0 bg-white z-50 flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-semibold">Media, links, and docs</h2>
             <Button variant="ghost" size="icon" onClick={() => setShowMediaModal(false)}>

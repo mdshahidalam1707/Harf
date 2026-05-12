@@ -299,6 +299,26 @@ Common issues and how to fix them.
 
 ---
 
+## 📱 Mobile Authentication & Google Login
+
+### Issue: "This site can't be reached" after Google Login on Mobile
+
+**What it means**: Google redirected you back to `localhost:5173`, but your mobile device doesn't know where that is. `localhost` refers to the mobile phone itself, not your computer.
+
+**Solution**:
+1.  **Find your Computer's IP**:
+    -   Windows: Run `ipconfig` in CMD (look for IPv4 Address, e.g., `192.168.1.10`)
+    -   Mac/Linux: Run `ifconfig` or `ip addr`
+2.  **Access via IP**: On your mobile browser, go to `http://YOUR_IP:5173`
+3.  **Update Supabase Redirects**:
+    -   Go to Supabase Dashboard → Authentication → URL Configuration
+    -   Add `http://YOUR_IP:5173/**` to the **Redirect URLs** whitelist
+4.  **Try Again**: Now Google will redirect you back to the IP address, which your phone *can* reach.
+
+**Pro Tip**: If you are using Vercel, use the Vercel URL instead of the IP address.
+
+---
+
 ## 📱 Mobile/Responsive Issues
 
 ### Issue: Layout looks broken on mobile

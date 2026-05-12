@@ -42,14 +42,7 @@ import {
   Plus,
   Briefcase,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 interface ChatAppProps {
   user: User;
@@ -600,95 +593,99 @@ export function ChatApp({ user, onLogout, onUserUpdate }: ChatAppProps) {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white overflow-hidden">
-      {/* Top Header */}
-      <header className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-3 py-2 flex items-center justify-between shadow-md flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="Harf Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-lg object-cover" />
-          <h1 className="text-lg md:text-xl font-bold">Harf</h1>
+    <div className="h-[100dvh] w-full flex flex-col bg-white overflow-hidden fixed inset-0">
+      {/* Top Header - Fixed Height */}
+      <header className="flex-shrink-0 bg-blue-600 text-white px-3 h-[56px] md:h-[64px] flex items-center justify-between shadow-md z-30">
+        <div className="flex items-center gap-2 md:gap-3">
+          <div className="bg-white/20 p-1 rounded-lg border border-white/20">
+            <img src="/logo.png" alt="Harf Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover" />
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-lg md:text-xl font-extrabold tracking-tight">Harf</h1>
+            <div className="text-[9px] md:text-xs text-white/70 font-medium hidden sm:block">
+              Professional Connection Hub
+            </div>
+          </div>
         </div>
 
-        {/* Created by text */}
-        <div className="hidden md:block text-xs text-white/80 mr-2">
-          Developed by Md Shahid Alam
+        <div className="hidden lg:flex items-center gap-2 bg-black/10 px-3 py-1 rounded-full border border-white/10">
+          <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+          <span className="text-[10px] text-white/90 font-medium">Developed by Md Shahid Alam</span>
         </div>
 
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1.5 md:gap-3">
           <Button
             variant="ghost"
             size="sm"
-            className="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full text-xs font-bold hidden sm:flex items-center"
+            className="bg-white/15 hover:bg-white/25 text-white px-3 py-1 rounded-full text-xs font-bold hidden md:flex items-center border border-white/10 transition-all"
             onClick={() => setShowUserSearchOpen(true)}
           >
-            <Search className="w-4 h-4 mr-1.5" /> New Chat
+            <Search className="w-3.5 h-3.5 mr-1.5" /> New Chat
           </Button>
           
-          <NotificationCenter 
-            currentUser={user} 
-            onAction={(type) => {
-              if (['like', 'comment'].includes(type)) setActiveTab('feed');
-              else if (['connection_request', 'connection_accepted', 'follow'].includes(type)) setActiveTab('network');
-              else if (['message', 'missed_call'].includes(type)) {
-                setActiveTab('chats');
-                setIsMobileChatOpen(false);
-              }
-              else if (['job_application', 'application_update'].includes(type)) setActiveTab('marketplace');
-            }}
-            onOpenSettings={() => setShowSettingsModal(true)}
-          />
+          <div className="flex items-center gap-1 bg-white/10 p-0.5 rounded-full border border-white/10">
+            <NotificationCenter 
+              currentUser={user} 
+              onAction={(type) => {
+                if (['like', 'comment'].includes(type)) setActiveTab('feed');
+                else if (['connection_request', 'connection_accepted', 'follow'].includes(type)) setActiveTab('network');
+                else if (['message', 'missed_call'].includes(type)) {
+                  setActiveTab('chats');
+                  setIsMobileChatOpen(false);
+                }
+                else if (['job_application', 'application_update'].includes(type)) setActiveTab('marketplace');
+              }}
+              onOpenSettings={() => setShowSettingsModal(true)}
+            />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowProfileModal(true)}
-            className="text-white hover:bg-white/20 rounded-full relative"
-          >
-            <Avatar className="w-8 h-8 border-2 border-white shadow-sm">
-              <AvatarImage src={user.profile_photo} />
-              <AvatarFallback className="bg-blue-700 text-white font-bold">
-                {user.name?.charAt(0) || user.email?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowProfileModal(true)}
+              className="text-white hover:bg-white/20 rounded-full w-8 h-8 md:w-9 md:h-9 relative transition-all"
+            >
+              <Avatar className="w-7 h-7 md:w-8 md:h-8 border-1.5 border-white/50 shadow-sm">
+                <AvatarImage src={user.profile_photo} />
+                <AvatarFallback className="bg-blue-700 text-white font-bold text-xs">
+                  {user.name?.charAt(0) || user.email?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowSettingsModal(true)}
-            className="text-white hover:bg-white/20 rounded-full"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettingsModal(true)}
+              className="text-white hover:bg-white/20 rounded-full w-8 h-8 md:w-9 md:h-9 transition-all"
+            >
+              <Settings className="w-4 h-4 md:w-5 md:h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      {/* Mobile "Created by" text */}
-      <div className="md:hidden bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-[10px] text-center py-0.5 flex-shrink-0">
-        Developed by Md Shahid Alam
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0 bg-gray-50 overflow-hidden relative">
-        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${activeTab === 'chats' || activeTab === 'groups' || activeTab === 'marketplace' ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Main Content Area - Flexible and Only Scrollable Region */}
+      <main className="flex-1 min-h-0 bg-gray-50 overflow-hidden relative">
+        <div className={`absolute inset-0 ${activeTab === 'chats' || activeTab === 'groups' || activeTab === 'marketplace' ? 'block' : 'hidden'}`}>
           {activeTab === 'marketplace' ? (
             <JobMarketplace currentUser={user} />
           ) : (
-            <div className="flex flex-1 h-full min-h-0 bg-white shadow-sm border-r border-gray-100 overflow-hidden">
+            <div className="flex h-full min-h-0 bg-white border-r border-gray-100 overflow-hidden">
               {(!isMobileView || !isMobileChatOpen) && (
                 <div className={`${isMobileView ? "w-full" : "w-[380px]"} flex-shrink-0 flex flex-col border-r border-gray-100 bg-white`}>
-                  <div className="px-6 py-5 border-b border-slate-50 flex items-center justify-between bg-white/90 backdrop-blur-xl sticky top-0 z-10">
+                  <div className="px-5 py-4 md:px-6 md:py-5 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-10">
                     <div className="flex flex-col">
-                      <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                      <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
                         {activeTab === 'groups' ? 'Communities' : 'Messages'}
                       </h1>
-                      <div className="h-1 w-8 bg-blue-600 rounded-full mt-1" />
+                      <div className="h-1 w-6 bg-blue-600 rounded-full mt-1" />
                     </div>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setShowUserSearchOpen(true)}
-                        className="hover:bg-slate-100 text-slate-600 rounded-full transition-all duration-300"
+                        className="w-9 h-9 hover:bg-slate-100 text-slate-600 rounded-full transition-all duration-300"
                       >
                         <Search className="w-5 h-5" />
                       </Button>
@@ -784,7 +781,7 @@ export function ChatApp({ user, onLogout, onUserUpdate }: ChatAppProps) {
           )}
         </div>
 
-        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${activeTab === 'feed' ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute inset-0 ${activeTab === 'feed' ? 'block' : 'hidden'}`}>
           <Feed 
             currentUser={user} 
             onStartChat={handleStartChat} 
@@ -795,7 +792,7 @@ export function ChatApp({ user, onLogout, onUserUpdate }: ChatAppProps) {
           />
         </div>
 
-        <div className={`absolute inset-0 transition-transform duration-300 ease-in-out ${activeTab === 'network' ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute inset-0 ${activeTab === 'network' ? 'block' : 'hidden'}`}>
           <Network 
             currentUser={user} 
             onStartChat={handleStartChat} 
@@ -816,111 +813,65 @@ export function ChatApp({ user, onLogout, onUserUpdate }: ChatAppProps) {
             }}
           />
         </div>
-      </div>
+      </main>
 
-      {/* Bottom Navigation - Luxury Minimalist Edition */}
-      <div className="flex-shrink-0 flex items-center justify-around py-3 px-6 mx-auto mb-6 bg-white/60 backdrop-blur-3xl border border-white/40 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.05)] z-20 rounded-full sticky bottom-6 max-w-[95%] sm:max-w-md transition-all duration-500 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)]">
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "chats" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => { setActiveTab("chats"); setIsMobileChatOpen(false); }}
-        >
-          <MessageCircle className={`w-5 h-5 transition-transform duration-500 ${activeTab === "chats" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "chats" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Chats
-            </motion.span>
-          )}
-        </Button>
+      {/* Bottom Navigation - Fixed and Balanced */}
+      <div className="flex-shrink-0 bg-white border-t border-gray-200 z-30 pb-safe shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center justify-around py-1.5 px-1 max-w-2xl mx-auto overflow-x-auto no-scrollbar">
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "chats" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => { setActiveTab("chats"); setIsMobileChatOpen(false); }}
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Chats</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "feed" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => setActiveTab("feed")}
-        >
-          <LayoutGrid className={`w-5 h-5 transition-transform duration-500 ${activeTab === "feed" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "feed" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Feed
-            </motion.span>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "feed" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => setActiveTab("feed")}
+          >
+            <LayoutGrid className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Feed</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "network" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => setActiveTab("network")}
-        >
-          <NetworkIcon className={`w-5 h-5 transition-transform duration-500 ${activeTab === "network" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "network" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Network
-            </motion.span>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "network" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => setActiveTab("network")}
+          >
+            <NetworkIcon className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Network</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "explore" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => setActiveTab("explore")}
-        >
-          <Search className={`w-5 h-5 transition-transform duration-500 ${activeTab === "explore" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "explore" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Explore
-            </motion.span>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "explore" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => setActiveTab("explore")}
+          >
+            <Search className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Explore</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "groups" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => setActiveTab("groups")}
-        >
-          <Users className={`w-5 h-5 transition-transform duration-500 ${activeTab === "groups" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "groups" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Groups
-            </motion.span>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "groups" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => setActiveTab("groups")}
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Groups</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          className={`flex items-center gap-2 h-11 px-4 transition-all duration-500 rounded-full relative group overflow-hidden ${activeTab === "marketplace" ? "text-blue-600 bg-blue-50/80 shadow-sm" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50/50"}`}
-          onClick={() => setActiveTab("marketplace")}
-        >
-          <Briefcase className={`w-5 h-5 transition-transform duration-500 ${activeTab === "marketplace" ? "scale-110" : "group-hover:scale-110"}`} />
-          {activeTab === "marketplace" && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }} 
-              animate={{ opacity: 1, x: 0 }}
-              className="text-xs font-bold tracking-tight"
-            >
-              Jobs
-            </motion.span>
-          )}
-        </Button>
+          <Button
+            variant="ghost"
+            className={`flex flex-col items-center gap-1 h-auto py-2 px-2.5 rounded-xl min-w-[60px] ${activeTab === "marketplace" ? "text-blue-600 bg-blue-50" : "text-slate-400"}`}
+            onClick={() => setActiveTab("marketplace")}
+          >
+            <Briefcase className="w-5 h-5" />
+            <span className="text-[10px] font-bold">Jobs</span>
+          </Button>
+        </div>
       </div>
 
       <PublicProfileModal 

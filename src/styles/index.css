@@ -11,17 +11,6 @@
 
 /* Touch-friendly tap targets */
 @media (max-width: 767px) {
-  button, 
-  div[role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* Larger touch targets for bottom nav */
-  .fixed.bottom-0 button {
-    padding: 8px 12px;
-  }
-  
   /* Better message bubbles on mobile */
   .max-w-\[75\%\] {
     max-width: 85%;

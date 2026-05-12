@@ -77,25 +77,25 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
               <TabsList className="bg-transparent border-none p-0 h-auto flex gap-1 w-max">
                 <TabsTrigger 
                   value="jobs" 
-                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold transition-all flex-shrink-0 whitespace-nowrap min-w-max"
+                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold flex-shrink-0 whitespace-nowrap min-w-max"
                 >
                   Find Jobs
                 </TabsTrigger>
                 <TabsTrigger 
                   value="my-apps" 
-                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold transition-all flex-shrink-0 whitespace-nowrap min-w-max"
+                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold flex-shrink-0 whitespace-nowrap min-w-max"
                 >
                   My Applications
                 </TabsTrigger>
                 <TabsTrigger 
                   value="freelance" 
-                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold transition-all flex-shrink-0 whitespace-nowrap min-w-max"
+                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold flex-shrink-0 whitespace-nowrap min-w-max"
                 >
                   Freelance Services
                 </TabsTrigger>
                 <TabsTrigger 
                   value="recruiter" 
-                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold transition-all flex-shrink-0 whitespace-nowrap min-w-max"
+                  className="rounded-2xl px-6 py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white font-bold flex-shrink-0 whitespace-nowrap min-w-max"
                 >
                   Recruiter Dashboard
                 </TabsTrigger>
@@ -104,7 +104,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
           </div>
 
           <div className="relative group px-2 md:max-w-2xl mx-auto">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500" />
             <Input 
               placeholder="Search titles, skills, or companies..." 
               className="pl-12 pr-4 py-6 rounded-2xl bg-white border-gray-100 focus:ring-2 focus:ring-blue-500 shadow-sm"
@@ -151,7 +151,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {jobsLoading ? (
-                [1,2,3,4,5,6].map(i => <div key={i} className="h-64 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-50" />)
+                [1,2,3,4,5,6].map(i => <div key={i} className="h-64 bg-white rounded-3xl shadow-sm border border-gray-50" />)
               ) : (
                 jobs
                   .filter(job => {
@@ -165,7 +165,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                     return matchesSearch && matchesSkill;
                   })
                   .map(job => (
-                  <Card key={job.id} className="group relative overflow-hidden rounded-3xl border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <Card key={job.id} className="group relative overflow-hidden rounded-3xl border-gray-100 shadow-sm hover:shadow-xl">
                     <CardContent className="p-6 space-y-6">
                       <div className="flex items-start justify-between">
                         <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center p-2 border border-gray-100 shadow-inner">
@@ -181,7 +181,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                       </div>
 
                       <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors leading-tight">{job.title}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 leading-tight">{job.title}</h3>
                         <p className="text-gray-500 text-sm font-medium flex items-center gap-1">
                           {job.company_name} • {job.location}
                         </p>
@@ -201,7 +201,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                         </div>
                         <Button 
                           onClick={() => setApplyingJob(job)}
-                          className="rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 transition-all"
+                          className="rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700"
                         >
                           Apply Now
                         </Button>
@@ -228,7 +228,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                 </div>
               ) : (
                 myApplications.map(app => (
-                  <Card key={app.id} className="rounded-3xl border-gray-100 overflow-hidden hover:shadow-md transition-all">
+                  <Card key={app.id} className="rounded-3xl border-gray-100 overflow-hidden hover:shadow-md">
                     <CardContent className="p-6 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
@@ -269,12 +269,12 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {servicesLoading ? (
-                [1,2,3,4].map(i => <div key={i} className="h-80 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-50" />)
+                [1,2,3,4].map(i => <div key={i} className="h-80 bg-white rounded-3xl shadow-sm border border-gray-50" />)
               ) : (
                 services.map(service => (
-                  <Card key={service.id} className="overflow-hidden rounded-3xl border-gray-100 shadow-sm hover:shadow-lg transition-all group">
+                  <Card key={service.id} className="overflow-hidden rounded-3xl border-gray-100 shadow-sm hover:shadow-lg group">
                     <div className="relative h-44 overflow-hidden bg-gray-100">
-                      <img src={service.thumbnail_url || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&auto=format&fit=crop&q=60'} alt={service.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <img src={service.thumbnail_url || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=800&auto=format&fit=crop&q=60'} alt={service.title} className="w-full h-full object-cover group-hover:scale-110" />
                       <div className="absolute top-3 right-3">
                          <Badge className="bg-white/90 text-gray-900 border-none backdrop-blur-sm font-bold flex items-center gap-1 shadow-sm">
                             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> {service.rating}
@@ -293,7 +293,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                         </div>
                       </div>
 
-                      <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-relaxed group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-sm font-bold text-gray-800 line-clamp-2 leading-relaxed group-hover:text-blue-600">
                         {service.title}
                       </h3>
 
@@ -350,7 +350,7 @@ export function JobMarketplace({ currentUser }: { currentUser: User }) {
                    </thead>
                    <tbody className="divide-y divide-gray-50">
                      {recruiter.applications.map(app => (
-                       <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                       <tr key={app.id} className="hover:bg-gray-50/50">
                          <td className="px-6 py-5">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10 rounded-xl">

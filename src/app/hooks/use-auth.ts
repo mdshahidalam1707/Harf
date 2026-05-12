@@ -1,25 +1,43 @@
 import { useState, useEffect } from 'react';
 import { supabase, User } from '@/lib/supabase';
+import { getAuthRedirectUrl } from '@/utils/url';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [setupComplete, setSetupComplete] = useState(false);
-  const [checkingSetup, setCheckingSetup] = useState(true);
-  const [verificationEmail, setVerificationEmail] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState(false); // Default to false
+  const [setupComplete, setSetupComplete] = useState(true);
+  const [checkingSetup, setCheckingSetup] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [resetError, setResetError] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
 
   useEffect(() => {
+    console.log('🌐 App Origin:', window.location.origin);
     checkDatabaseAndUser();
+
+    // Set up auth state listener for OAuth redirects and session changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔔 Auth Event:', event);
+      if (session?.user) {
+        await checkUser();
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
+    // Handle password reset links or OAuth tokens in query params
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const type = hashParams.get('type');
+    const queryParams = new URLSearchParams(window.location.search);
+    
+    const accessToken = hashParams.get('access_token') || queryParams.get('access_token');
+    const type = hashParams.get('type') || queryParams.get('type');
     
     if (type === 'recovery' && accessToken) {
       setIsResettingPassword(true);
@@ -27,30 +45,47 @@ export function useAuth() {
   }, []);
 
   const checkDatabaseAndUser = async () => {
+    console.log('🔍 Starting passive database and session check...');
+    
     try {
-      const { error: dbError } = await supabase
-        .from('users')
-        .select('id')
-        .limit(1);
-
-      if (dbError) {
-        setSetupComplete(false);
-        setCheckingSetup(false);
-        setLoading(false);
-        return;
+      // 1. Just check the session. Don't block if it's slow.
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log('✅ Session detected, loading profile...');
+        setSetupComplete(true);
+        await checkUser();
+      } else {
+        console.log('ℹ️ No session found on initial check');
+        // We still assume setup is complete unless we hit an error later
+        setSetupComplete(true);
       }
-
-      setSetupComplete(true);
-      setCheckingSetup(false);
-      await checkUser();
     } catch (error) {
-      setSetupComplete(false);
-      setCheckingSetup(false);
-      setLoading(false);
+      console.warn('⚠️ Initial check failed, but continuing...', error);
+      setSetupComplete(true);
+    } finally {
+      // ALWAYS stop checking setup within 2 seconds regardless of outcome
+      setTimeout(() => setCheckingSetup(false), 500);
     }
   };
 
   const checkUser = async () => {
+    console.log('👤 Fetching user profile...');
+    const timeoutId = setTimeout(async () => {
+      console.warn('🕒 Profile fetch taking too long, using fallback');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user && !user) {
+        setUser({
+          id: session.user.id,
+          name: session.user.email?.split('@')[0] || 'User',
+          email: session.user.email || '',
+          profession: 'Loading...',
+          skills: []
+        } as any);
+      }
+      setLoading(false);
+    }, 3000);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -58,45 +93,46 @@ export function useAuth() {
           .from('users')
           .select('*')
           .eq('id', session.user.id)
+          .limit(1)
           .maybeSingle();
 
         if (error) {
           console.error('Error fetching user profile:', error);
-          setLoading(false);
-          return;
-        }
-
-        if (!userData) {
+          // Fallback to minimal user object
+          setUser({
+            id: session.user.id,
+            name: session.user.email?.split('@')[0] || 'User',
+            email: session.user.email || '',
+          } as any);
+        } else if (userData) {
+          setUser(userData);
+        } else {
+          // If no profile exists (common for new OAuth/Google users), create it
+          console.log('No profile record found, creating one for authenticated user...');
           const { data: newProfile, error: createError } = await supabase
             .from('users')
             .insert({
               id: session.user.id,
-              name: session.user.email?.split('@')[0] || 'User',
+              name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
               email: session.user.email,
               bio: '',
-              profession: '',
+              profession: 'Member',
               skills: [],
             })
             .select()
             .single();
 
           if (createError) {
-            console.error('Error creating user profile:', createError);
-            await supabase.auth.signOut();
-            setLoading(false);
-            return;
-          }
-
-          if (newProfile) {
+            console.error('Error creating profile for new user:', createError);
+          } else if (newProfile) {
             setUser(newProfile);
           }
-        } else {
-          setUser(userData);
         }
       }
     } catch (error) {
       console.error('Error checking user session:', error);
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -145,75 +181,69 @@ export function useAuth() {
       if (!email || !password || !name) throw new Error('Please fill in all fields');
       if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
-      localStorage.setItem('pendingSignup', JSON.stringify({ email, password, name }));
-      
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signUp({
         email,
-        options: { emailRedirectTo: window.location.origin }
+        password,
+        options: {
+          data: { name, full_name: name },
+          emailRedirectTo: getAuthRedirectUrl()
+        }
       });
 
-      if (otpError) throw new Error(otpError.message);
-      setVerificationEmail(email);
+      if (error) throw new Error(error.message);
 
+      if (data.user) {
+        // Create user profile immediately in public.users table
+        const { error: profileError } = await supabase.from('users').insert({
+          id: data.user.id,
+          name: name,
+          email: email,
+          bio: '',
+          profession: '',
+          skills: [],
+        });
+
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+          // If profile creation fails but auth succeeded, we still have the auth user.
+          // The checkUser function in App.tsx will try to create it again on next load.
+        }
+
+        // If a session exists (auto-confirm is on), set the user
+        if (data.session) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+          if (userData) setUser(userData);
+        }
+      }
+      
+      // Removed return data; to fix type mismatch with AuthPage
     } catch (error: any) {
       throw new Error(error.message || 'Signup failed');
     }
   };
 
-  const handleVerifyOtp = async (email: string, token: string) => {
-    try {
-      const pendingSignup = localStorage.getItem('pendingSignup');
-      if (!pendingSignup) throw new Error('No pending signup found');
-
-      const { email: signupEmail, password, name } = JSON.parse(pendingSignup);
-
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email, token, type: 'email'
-      });
-
-      if (verifyError) throw new Error(verifyError.message);
-      if (!data.user) throw new Error('Verification failed');
-
-      await supabase.from('users').insert({
-        id: data.user.id,
-        name: name || signupEmail.split('@')[0],
-        email: signupEmail,
-        bio: '',
-        profession: '',
-        skills: [],
-      });
-
-      localStorage.removeItem('pendingSignup');
-      setVerificationEmail(undefined);
-      await handleLogin(signupEmail, password);
-
-    } catch (error: any) {
-      throw new Error(error.message || 'Verification failed');
-    }
-  };
-
-  const handleResendOtp = async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin }
-    });
-    if (error) throw new Error(error.message);
-  };
-
   const handleForgotPassword = async (email: string) => {
     if (!email) throw new Error('Please enter your email');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin
+      redirectTo: getAuthRedirectUrl()
     });
     if (error) throw new Error(error.message);
     return true;
   };
 
   const handleGoogleLogin = async () => {
+    const redirectTo = getAuthRedirectUrl();
+    console.log('🚀 Starting Google Login with redirect:', redirectTo);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: redirectTo,
+        skipBrowserRedirect: false
       }
     });
     if (error) throw new Error(error.message);
@@ -262,7 +292,6 @@ export function useAuth() {
     loading,
     checkingSetup,
     setupComplete,
-    verificationEmail,
     isResettingPassword,
     newPassword,
     setNewPassword,
@@ -270,8 +299,6 @@ export function useAuth() {
     resetSuccess,
     handleLogin,
     handleSignup,
-    handleVerifyOtp,
-    handleResendOtp,
     handleForgotPassword,
     handleGoogleLogin,
     handleLogout,

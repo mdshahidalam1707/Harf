@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase, User, Post, PostComment, Job, createNotification } from '../../lib/supabase';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Image as ImageIcon, Video, Heart, MessageSquare, Share2, X, Loader2, ThumbsUp, CornerDownRight, Briefcase, DollarSign, Send, UserPlus, UserCheck, Rss, Plus, Camera, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
+import { Image as ImageIcon, Video, Heart, MessageSquare, Share2, X, Loader2, ThumbsUp, CornerDownRight, Briefcase, DollarSign, Send, UserPlus, UserCheck, Rss, Plus, Camera, ChevronLeft, ChevronRight, Play, Pause, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface FeedProps {
@@ -553,20 +553,20 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
 
   return (
     <div
-      className="flex flex-col h-full bg-gray-50 overflow-y-auto overscroll-y-contain w-full max-w-3xl mx-auto border-x border-gray-200"
+      className="flex flex-col h-full bg-gray-50 overflow-y-auto overscroll-y-contain w-full max-w-3xl mx-auto md:border-x border-gray-200"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       {/* Tab Switcher */}
-      <div className="flex bg-white border-b border-gray-200 sticky top-0 z-20">
+      <div className="flex bg-white border-b border-gray-200 sticky top-0 md:top-0 z-20" style={{ top: '56px' }}>
         <button
           onClick={() => setActiveTab('social')}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'social' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 py-3 text-sm font-semibold border-b-2 ${activeTab === 'social' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
           Social Feed
         </button>
         <button
           onClick={() => setActiveTab('jobs')}
-          className={`flex-1 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'jobs' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+          className={`flex-1 py-3 text-sm font-semibold border-b-2 ${activeTab === 'jobs' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
         >
           Professional Board
         </button>
@@ -583,50 +583,23 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
             </div>
             <div className="flex gap-5 p-5 overflow-x-auto no-scrollbar">
               {/* My Status */}
-              {(() => {
-                const myStatusGroup = groupedStatuses[currentUser?.id];
-                const hasStatus = myStatusGroup && myStatusGroup.items && myStatusGroup.items.length > 0;
-                
-                return (
-                  <div className="flex flex-col items-center flex-shrink-0 gap-1 cursor-pointer group">
-                    <div className="relative" onClick={() => hasStatus ? setActiveStatusUser(currentUser.id) : setShowStatusCreator(true)}>
-                      <div className={`w-16 h-16 rounded-full p-0.5 border-2 ${hasStatus ? 'border-blue-500 ring-2 ring-blue-100' : 'border-dashed border-gray-300'} group-hover:border-blue-500 transition-all flex items-center justify-center bg-gray-50`}>
-                        <Avatar className="w-14 h-14 ring-2 ring-white">
-                          <AvatarImage src={currentUser?.profile_photo} className="rounded-full" />
-                          <AvatarFallback className="bg-blue-500 text-white font-bold">{currentUser?.name?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        {!hasStatus && (
-                          <div className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-1 border-2 border-white text-white shadow-lg">
-                            <Plus className="w-3 h-3" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] font-bold text-gray-600">My Status</span>
-                      {hasStatus && (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowStatusCreator(true);
-                          }} 
-                          className="text-[8px] text-blue-600 font-bold hover:underline mt-0.5 bg-blue-50 px-1.5 py-0.5 rounded"
-                        >
-                          Add New
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
+              <div className="flex flex-col items-center flex-shrink-0 gap-1 cursor-pointer" onClick={() => (groupedStatuses[currentUser?.id]?.items?.length > 0 ? setActiveStatusUser(currentUser.id) : setShowStatusCreator(true))}>
+                <div className={`w-14 h-14 rounded-full p-0.5 border-2 ${groupedStatuses[currentUser?.id]?.items?.length > 0 ? 'border-blue-500' : 'border-dashed border-gray-300'}`}>
+                  <Avatar className="w-full h-full">
+                    <AvatarImage src={currentUser?.profile_photo} />
+                    <AvatarFallback className="bg-blue-500 text-white font-bold">{currentUser?.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <span className="text-[10px] font-bold text-gray-600">My Status</span>
+              </div>
 
               {/* Other User Statuses */}
               {groupedStatuses && Object.keys(groupedStatuses).filter(uid => uid !== currentUser?.id).map(uid => {
                 const group = groupedStatuses[uid];
                 return (
-                  <div key={uid} className="flex flex-col items-center flex-shrink-0 gap-1 cursor-pointer group" onClick={() => setActiveStatusUser(uid)}>
-                    <div className="relative p-0.5 rounded-full ring-2 ring-blue-500 ring-offset-2 overflow-hidden transition-transform group-hover:scale-105">
-                      <Avatar className="w-14 h-14">
+                  <div key={uid} className="flex flex-col items-center flex-shrink-0 gap-1 cursor-pointer" onClick={() => setActiveStatusUser(uid)}>
+                    <div className="w-14 h-14 rounded-full p-0.5 border-2 border-blue-500">
+                      <Avatar className="w-full h-full">
                         <AvatarImage src={group.user?.profile_photo} />
                         <AvatarFallback className="bg-gray-200">{group.user?.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
@@ -639,8 +612,9 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
           </div>
 
           {/* Create Post Box */}
-          <div className="bg-white p-4 border-b border-gray-200 shadow-sm">
-            <div className="flex gap-3">
+          <div className="bg-white p-3.5 md:p-4 border-b border-gray-200 shadow-sm">
+            <div className="flex gap-2.5 md:gap-3">
+
               <Avatar className="w-10 h-10 flex-shrink-0">
                 <AvatarImage src={currentUser.profile_photo} />
                 <AvatarFallback className="bg-blue-500 text-white">
@@ -737,253 +711,254 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
               </div>
             ) : (
               posts.map(post => (
-            <div key={post.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-4">
-              <div className="p-4 flex gap-3">
-                <Avatar
-                  className="w-12 h-12 cursor-pointer flex-shrink-0"
-                  onClick={() => onViewProfile && post.user && onViewProfile(post.user.id)}
-                >
-                  <AvatarImage src={post.user?.profile_photo} />
-                  <AvatarFallback className="bg-gray-200 text-gray-700">
-                    {post.user?.name?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <h4
-                    className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate"
-                    onClick={() => onViewProfile && post.user && onViewProfile(post.user.id)}
-                  >
-                    {post.user?.name || post.user?.email}
-                  </h4>
-                  <p className="text-xs text-gray-500 truncate">{post.user?.profession || 'Member'}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
-                </div>
-
-                {/* Networking Buttons */}
-                {post.user_id !== currentUser.id && (
-                  <div className="flex items-center gap-1.5 ml-auto">
-                    {connectionStatuses[post.user_id] === 'accepted' ? (
-                      <Button variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-green-50 text-green-700 border-green-200">
-                        <UserCheck className="w-3 h-3 mr-1" /> Connected
-                      </Button>
-                    ) : (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className={`h-7 px-2 text-[10px] ${connectionStatuses[post.user_id] === 'pending' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'}`}
-                        onClick={() => handleConnect(post.user_id)}
-                        disabled={connectionStatuses[post.user_id] === 'pending' || processingAction[post.user_id]}
-                      >
-                        {connectionStatuses[post.user_id] === 'pending' ? 'Pending' : (
-                          <><UserPlus className="w-3 h-3 mr-1" /> Connect</>
-                        )}
-                      </Button>
-                    )}
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`h-7 px-2 text-[10px] ${followStatuses[post.user_id] ? 'text-blue-600' : 'text-gray-500'}`}
-                      onClick={() => handleFollow(post.user_id)}
-                      disabled={processingAction[post.user_id]}
+                <div key={post.id} className="bg-white rounded-xl border border-gray-200 shadow-sm mb-4 overflow-hidden">
+                  <div className="p-4 flex gap-3">
+                    <Avatar
+                      className="w-12 h-12 cursor-pointer flex-shrink-0"
+                      onClick={() => onViewProfile && post.user && onViewProfile(post.user.id)}
                     >
-                      <Rss className="w-3 h-3 mr-1" />
-                      {followStatuses[post.user_id] ? 'Following' : 'Follow'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              <div className="px-4 pb-3">
-                <p className="text-gray-800 whitespace-pre-wrap text-sm break-words">{post.content}</p>
-              </div>
-
-              {post.media_url && (
-                <div className="w-full bg-gray-100 max-h-[500px] overflow-hidden flex items-center justify-center border-y border-gray-100">
-                  {post.media_type === 'image' ? (
-                    <img src={post.media_url} className="w-full object-contain max-h-[500px]" alt="Post attachment" loading="lazy" />
-                  ) : post.media_type === 'video' ? (
-                    <video src={post.media_url} controls className="w-full max-h-[500px] object-contain" preload="metadata" />
-                  ) : null}
-                </div>
-              )}
-
-              <div className="px-2 sm:px-4 py-2 flex items-center justify-between text-gray-500 bg-white">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`flex-1 flex gap-2 justify-center rounded-lg ${post.has_liked ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'hover:bg-gray-50'}`}
-                  onClick={() => handleLike(post.id, !!post.has_liked)}
-                >
-                  <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.has_liked ? 'fill-current' : ''}`} />
-                  <span className="text-xs sm:text-sm font-medium">Like</span>
-                  {(post.likes_count ?? 0) > 0 && (
-                    <span
-                      className="text-xs sm:text-sm font-medium text-blue-600 hover:underline ml-1"
-                      onClick={(e) => { e.stopPropagation(); handleViewPostLikes(post.id); }}
-                    >
-                      ({post.likes_count})
-                    </span>
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`flex-1 flex gap-2 justify-center rounded-lg ${openComments[post.id] ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
-                  onClick={() => toggleComments(post.id)}
-                >
-                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm font-medium">
-                    Comment {(post.comments_count ?? 0) > 0 ? `(${post.comments_count})` : ''}
-                  </span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex-1 flex gap-2 justify-center hover:bg-gray-50 rounded-lg"
-                  onClick={() => {
-                    if (navigator.share) {
-                      navigator.share({
-                        title: `Post by ${post.user?.name}`,
-                        text: post.content,
-                        url: window.location.href,
-                      }).catch(console.error);
-                    } else {
-                      navigator.clipboard.writeText(`${post.content}\n\n- ${post.user?.name}`);
-                      alert('Post copied to clipboard!');
-                    }
-                  }}
-                >
-                  <Share2 className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="text-xs sm:text-sm font-medium">Share</span>
-                </Button>
-              </div>
-
-              {/* Comments Section */}
-              {openComments[post.id] && (
-                <div className="border-t border-gray-100 bg-gray-50 p-4">
-                  {/* Comment Input */}
-                  <div className="flex gap-2 mb-4">
-                    <Avatar className="w-8 h-8 flex-shrink-0">
-                      <AvatarImage src={currentUser.profile_photo} />
-                      <AvatarFallback className="bg-blue-500 text-white text-xs">
-                        {currentUser.name?.charAt(0).toUpperCase() || 'U'}
+                      <AvatarImage src={post.user?.profile_photo} />
+                      <AvatarFallback className="bg-gray-200 text-gray-700">
+                        {post.user?.name?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 flex flex-col">
-                      {replyingTo?.postId === post.id && (
-                        <div className="flex items-center justify-between bg-blue-50 text-blue-800 text-[10px] px-3 py-1 rounded-t-lg border border-blue-100 border-b-0">
-                          <span>Replying to <span className="font-bold">{replyingTo.userName}</span></span>
-                          <button onClick={() => setReplyingTo(null)}>
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
-                      <div className={`flex bg-white border border-gray-200 ${replyingTo?.postId === post.id ? 'rounded-b-2xl rounded-tr-2xl' : 'rounded-full'} overflow-hidden focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500`}>
-                        <input
-                          type="text"
-                          placeholder="Write a comment..."
-                          className="flex-1 px-4 py-2 text-sm bg-transparent border-none focus:outline-none"
-                          value={newComment[post.id] || ''}
-                          onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddComment(post.id);
-                          }}
-                        />
-                        <button
-                          onClick={() => handleAddComment(post.id)}
-                          disabled={!newComment[post.id]?.trim()}
-                          className="px-4 text-blue-600 font-medium text-sm hover:bg-blue-50 disabled:opacity-50 disabled:hover:bg-transparent"
-                        >
-                          Post
-                        </button>
-                      </div>
+                    <div className="min-w-0">
+                      <h4
+                        className="font-semibold text-gray-900 hover:text-blue-600 cursor-pointer truncate"
+                        onClick={() => onViewProfile && post.user && onViewProfile(post.user.id)}
+                      >
+                        {post.user?.name || post.user?.email}
+                      </h4>
+                      <p className="text-xs text-gray-500 truncate">{post.user?.profession || 'Member'}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
                     </div>
+
+                    {/* Networking Buttons */}
+                    {post.user_id !== currentUser.id && (
+                      <div className="flex items-center gap-1.5 ml-auto">
+                        {connectionStatuses[post.user_id] === 'accepted' ? (
+                          <Button variant="outline" size="sm" className="h-7 px-2 text-[10px] bg-green-50 text-green-700 border-green-200">
+                            <UserCheck className="w-3 h-3 mr-1" /> Connected
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className={`h-7 px-2 text-[10px] ${connectionStatuses[post.user_id] === 'pending' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'}`}
+                            onClick={() => handleConnect(post.user_id)}
+                            disabled={connectionStatuses[post.user_id] === 'pending' || processingAction[post.user_id]}
+                          >
+                            {connectionStatuses[post.user_id] === 'pending' ? 'Pending' : (
+                              <><UserPlus className="w-3 h-3 mr-1" /> Connect</>
+                            )}
+                          </Button>
+                        )}
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className={`h-7 px-2 text-[10px] ${followStatuses[post.user_id] ? 'text-blue-600' : 'text-gray-500'}`}
+                          onClick={() => handleFollow(post.user_id)}
+                          disabled={processingAction[post.user_id]}
+                        >
+                          <Rss className="w-3 h-3 mr-1" />
+                          {followStatuses[post.user_id] ? 'Following' : 'Follow'}
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Comments List */}
-                  {loadingComments[post.id] ? (
-                      <div className="flex justify-center py-4">
-                        <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-                      </div>
-                    ) : (postComments[post.id] && postComments[post.id].length > 0) ? (
-                      <div className="space-y-4 mt-4">
-                        {postComments[post.id].filter(c => !c.parent_id).map(comment => (
-                          <div key={comment.id} className="flex flex-col gap-2">
-                            <div className="flex gap-2">
-                              <Avatar className="w-8 h-8 flex-shrink-0">
-                                <AvatarImage src={comment.user?.profile_photo} />
-                                <AvatarFallback className="bg-gray-200 text-gray-700 text-xs">
-                                  {comment.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2">
-                                  <div className="flex items-baseline justify-between mb-0.5">
-                                    <span className="font-medium text-sm text-gray-900">{comment.user?.name}</span>
-                                    <span className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</span>
-                                  </div>
-                                  <p className="text-sm text-gray-800 break-words">{comment.content}</p>
-                                </div>
-                                <div className="flex items-center gap-4 mt-1 ml-2 text-xs text-gray-500 font-medium">
-                                  <button
-                                    onClick={() => handleCommentLike(post.id, comment.id, !!comment.has_liked)}
-                                    className={`hover:text-gray-800 flex items-center gap-1 ${comment.has_liked ? 'text-red-500' : ''}`}
-                                  >
-                                    Like {comment.likes_count ? `(${comment.likes_count})` : ''}
-                                  </button>
-                                  <button
-                                    onClick={() => setReplyingTo({ postId: post.id, commentId: comment.id, userName: comment.user?.name || 'User' })}
-                                    className="hover:text-gray-800"
-                                  >
-                                    Reply
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                  <div className="px-4 pb-3">
+                    <p className="text-gray-800 whitespace-pre-wrap text-sm break-words">{post.content}</p>
+                  </div>
 
-                            {/* Render Replies */}
-                            {postComments[post.id].filter(reply => reply.parent_id === comment.id).map(reply => (
-                              <div key={reply.id} className="ml-10 flex gap-2">
-                                <Avatar className="w-6 h-6 flex-shrink-0">
-                                  <AvatarImage src={reply.user?.profile_photo} />
-                                  <AvatarFallback className="bg-gray-200 text-gray-700 text-[10px]">
-                                    {reply.user?.name?.charAt(0).toUpperCase() || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2">
-                                    <div className="flex items-baseline justify-between mb-0.5">
-                                      <span className="font-medium text-xs text-gray-900">{reply.user?.name}</span>
-                                      <span className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                  {post.media_url && (
+                    <div className="w-full bg-gray-100 max-h-[500px] overflow-hidden flex items-center justify-center border-y border-gray-100">
+                      {post.media_type === 'image' ? (
+                        <img src={post.media_url} className="w-full object-contain max-h-[500px]" alt="Post attachment" loading="lazy" />
+                      ) : post.media_type === 'video' ? (
+                        <video src={post.media_url} controls className="w-full max-h-[500px] object-contain" preload="metadata" />
+                      ) : null}
+                    </div>
+                  )}
+
+                  <div className="px-2 sm:px-4 py-2 flex items-center justify-between text-gray-500 bg-white">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex-1 flex gap-2 justify-center rounded-lg ${post.has_liked ? 'text-red-500 hover:text-red-600 hover:bg-red-50' : 'hover:bg-gray-50'}`}
+                      onClick={() => handleLike(post.id, !!post.has_liked)}
+                    >
+                      <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${post.has_liked ? 'fill-current' : ''}`} />
+                      <span className="text-xs sm:text-sm font-medium">Like</span>
+                      {(post.likes_count ?? 0) > 0 && (
+                        <span
+                          className="text-xs sm:text-sm font-medium text-blue-600 hover:underline ml-1"
+                          onClick={(e) => { e.stopPropagation(); handleViewPostLikes(post.id); }}
+                        >
+                          ({post.likes_count})
+                        </span>
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`flex-1 flex gap-2 justify-center rounded-lg ${openComments[post.id] ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50'}`}
+                      onClick={() => toggleComments(post.id)}
+                    >
+                      <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-xs sm:text-sm font-medium">
+                        Comment {(post.comments_count ?? 0) > 0 ? `(${post.comments_count})` : ''}
+                      </span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1 flex gap-2 justify-center hover:bg-gray-50 rounded-lg"
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: `Post by ${post.user?.name}`,
+                            text: post.content,
+                            url: window.location.href,
+                          }).catch(console.error);
+                        } else {
+                          navigator.clipboard.writeText(`${post.content}\n\n- ${post.user?.name}`);
+                          alert('Post copied to clipboard!');
+                        }
+                      }}
+                    >
+                      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="text-xs sm:text-sm font-medium">Share</span>
+                    </Button>
+                  </div>
+
+                  {/* Comments Section */}
+                  {openComments[post.id] && (
+                    <div className="border-t border-gray-100 bg-gray-50 p-4">
+                      {/* Comment Input */}
+                      <div className="flex gap-2 mb-4">
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                          <AvatarImage src={currentUser.profile_photo} />
+                          <AvatarFallback className="bg-blue-500 text-white text-xs">
+                            {currentUser.name?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 flex flex-col">
+                          {replyingTo?.postId === post.id && (
+                            <div className="flex items-center justify-between bg-blue-50 text-blue-800 text-[10px] px-3 py-1 rounded-t-lg border border-blue-100 border-b-0">
+                              <span>Replying to <span className="font-bold">{replyingTo.userName}</span></span>
+                              <button onClick={() => setReplyingTo(null)}>
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
+                          <div className={`flex bg-white border border-gray-200 ${replyingTo?.postId === post.id ? 'rounded-b-2xl rounded-tr-2xl' : 'rounded-full'} overflow-hidden focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500`}>
+                            <input
+                              type="text"
+                              placeholder="Write a comment..."
+                              className="flex-1 px-4 py-2 text-sm bg-transparent border-none focus:outline-none"
+                              value={newComment[post.id] || ''}
+                              onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddComment(post.id);
+                              }}
+                            />
+                            <button
+                              onClick={() => handleAddComment(post.id)}
+                              disabled={!newComment[post.id]?.trim()}
+                              className="px-4 text-blue-600 font-medium text-sm hover:bg-blue-50 disabled:opacity-50 disabled:hover:bg-transparent"
+                            >
+                              Post
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Comments List */}
+                      {loadingComments[post.id] ? (
+                          <div className="flex justify-center py-4">
+                            <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+                          </div>
+                        ) : (postComments[post.id] && postComments[post.id].length > 0) ? (
+                          <div className="space-y-4 mt-4">
+                            {postComments[post.id].filter(c => !c.parent_id).map(comment => (
+                              <div key={comment.id} className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                  <Avatar className="w-8 h-8 flex-shrink-0">
+                                    <AvatarImage src={comment.user?.profile_photo} />
+                                    <AvatarFallback className="bg-gray-200 text-gray-700 text-xs">
+                                      {comment.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2">
+                                      <div className="flex items-baseline justify-between mb-0.5">
+                                        <span className="font-medium text-sm text-gray-900">{comment.user?.name}</span>
+                                        <span className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</span>
+                                      </div>
+                                      <p className="text-sm text-gray-800 break-words">{comment.content}</p>
                                     </div>
-                                    <p className="text-xs text-gray-800 break-words">{reply.content}</p>
-                                  </div>
-                                  <div className="flex items-center gap-4 mt-1 ml-2 text-[10px] text-gray-500 font-medium">
-                                    <button
-                                      onClick={() => handleCommentLike(post.id, reply.id, !!reply.has_liked)}
-                                      className={`hover:text-gray-800 flex items-center gap-1 ${reply.has_liked ? 'text-red-500' : ''}`}
-                                    >
-                                      Like {reply.likes_count ? `(${reply.likes_count})` : ''}
-                                    </button>
+                                    <div className="flex items-center gap-4 mt-1 ml-2 text-xs text-gray-500 font-medium">
+                                      <button
+                                        onClick={() => handleCommentLike(post.id, comment.id, !!comment.has_liked)}
+                                        className={`hover:text-gray-800 flex items-center gap-1 ${comment.has_liked ? 'text-red-500' : ''}`}
+                                      >
+                                        Like {comment.likes_count ? `(${comment.likes_count})` : ''}
+                                      </button>
+                                      <button
+                                        onClick={() => setReplyingTo({ postId: post.id, commentId: comment.id, userName: comment.user?.name || 'User' })}
+                                        className="hover:text-gray-800"
+                                      >
+                                        Reply
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
+
+                                {/* Render Replies */}
+                                {postComments[post.id].filter(reply => reply.parent_id === comment.id).map(reply => (
+                                  <div key={reply.id} className="ml-10 flex gap-2">
+                                    <Avatar className="w-6 h-6 flex-shrink-0">
+                                      <AvatarImage src={reply.user?.profile_photo} />
+                                      <AvatarFallback className="bg-gray-200 text-gray-700 text-[10px]">
+                                        {reply.user?.name?.charAt(0).toUpperCase() || 'U'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                      <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-none px-3 py-2">
+                                        <div className="flex items-baseline justify-between mb-0.5">
+                                          <span className="font-medium text-xs text-gray-900">{reply.user?.name}</span>
+                                          <span className="text-[10px] text-gray-500">{formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-800 break-words">{reply.content}</p>
+                                      </div>
+                                      <div className="flex items-center gap-4 mt-1 ml-2 text-[10px] text-gray-500 font-medium">
+                                        <button
+                                          onClick={() => handleCommentLike(post.id, reply.id, !!reply.has_liked)}
+                                          className={`hover:text-gray-800 flex items-center gap-1 ${reply.has_liked ? 'text-red-500' : ''}`}
+                                        >
+                                          Like {reply.likes_count ? `(${reply.likes_count})` : ''}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
                             ))}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-4 text-sm text-gray-500">
-                        No comments yet. Be the first!
+                        ) : (
+                          <div className="text-center py-4 text-sm text-gray-500">
+                            No comments yet. Be the first!
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
-            )))}
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {activeTab === 'jobs' && (
         <div className="flex-1 p-2 sm:p-4 space-y-4">
@@ -1017,9 +992,11 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
                 </Button>
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-3 md:gap-4 px-3 md:px-0">
                 {jobs.map(job => (
-                  <div key={job.id} className="bg-white rounded-[12px] border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-5 relative overflow-hidden group">
+                  <div key={job.id} className="bg-white rounded-2xl md:rounded-[12px] border border-gray-100 p-4 md:p-5 relative overflow-hidden">
+
+
                     {/* Budget Tag */}
                     <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1.5 rounded-bl-xl flex items-center gap-1 shadow-sm">
                       <DollarSign className="w-3.5 h-3.5" />
@@ -1034,7 +1011,8 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-bold text-gray-900 text-base md:text-lg leading-tight mb-1 group-hover:text-blue-600 transition-colors truncate pr-2">
+
                           {job.title}
                         </h3>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
@@ -1079,7 +1057,7 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
 
       {/* Status Viewer Overlay */}
       {activeStatusUser && (
-        <StatusViewer userId={activeStatusUser} onClose={() => setActiveStatusUser(null)} />
+        <StatusViewer userId={activeStatusUser} currentUser={currentUser} onClose={() => setActiveStatusUser(null)} />
       )}
 
       {/* Status Creator Modal */}
@@ -1186,30 +1164,53 @@ export function Feed({ currentUser, onViewProfile, onStartChat }: FeedProps) {
 }
 
 // Sub-components
-function StatusViewer({ userId, onClose }: { userId: string, onClose: () => void }) {
+function StatusViewer({ userId, currentUser, onClose }: { userId: string, currentUser: User, onClose: () => void }) {
   const [userStatuses, setUserStatuses] = useState<Status[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [showViewers, setShowViewers] = useState(false);
 
   useEffect(() => {
     const fetchUserStatuses = async () => {
-      const { data } = await supabase
-        .from('statuses')
-        .select('*, user:users(*)')
-        .eq('user_id', userId)
-        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: true });
-      
-      if (data) setUserStatuses(data);
-      setLoading(false);
+      try {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const { data, error } = await supabase
+          .from('statuses')
+          .select('*, user:users(*)')
+          .eq('user_id', userId)
+          .gt('created_at', twentyFourHoursAgo)
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        if (data && data.length > 0) setUserStatuses(data);
+        else onClose();
+      } catch (err) {
+        onClose();
+      } finally {
+        setLoading(false);
+      }
     };
     fetchUserStatuses();
-  }, [userId]);
+  }, [userId, onClose]);
+
+  // Record view when status changes
+  useEffect(() => {
+    if (userStatuses.length > 0 && !loading && userId !== currentUser.id) {
+      const currentStatus = userStatuses[currentIndex];
+      const recordView = async () => {
+        await supabase.from('status_views').upsert({
+          status_id: currentStatus.id,
+          viewer_id: currentUser.id
+        }, { onConflict: 'status_id, viewer_id' });
+      };
+      recordView();
+    }
+  }, [currentIndex, userStatuses, loading, userId, currentUser.id]);
 
   useEffect(() => {
-    if (userStatuses.length === 0 || loading || isPaused) return;
+    if (userStatuses.length === 0 || loading || isPaused || showViewers) return;
 
     const timer = setInterval(() => {
       setProgress(prev => {
@@ -1227,73 +1228,147 @@ function StatusViewer({ userId, onClose }: { userId: string, onClose: () => void
     }, 50);
 
     return () => clearInterval(timer);
-  }, [currentIndex, userStatuses, loading, onClose, isPaused]);
+  }, [currentIndex, userStatuses, loading, onClose, isPaused, showViewers]);
 
-  if (loading) return null;
-  if (userStatuses.length === 0) {
-    onClose();
-    return null;
+  if (loading || userStatuses.length === 0) {
+    return (
+      <div className="fixed inset-0 z-[999] bg-black flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-white animate-spin" />
+      </div>
+    );
   }
 
   const currentStatus = userStatuses[currentIndex];
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col animate-in fade-in duration-300">
-      <div className="absolute top-4 left-4 right-4 flex gap-1 z-10">
+    <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-in fade-in duration-300 touch-none">
+      <div className="absolute top-4 left-4 right-4 flex gap-1.5 z-50">
         {userStatuses.map((_, idx) => (
-          <div key={idx} className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-white transition-all duration-100 ease-linear"
-              style={{ width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%' }}
-            />
+          <div key={idx} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-full bg-white transition-all duration-100 ease-linear" style={{ width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%' }} />
           </div>
         ))}
       </div>
 
-      <div className="absolute top-8 left-4 right-4 flex items-center justify-between z-10">
+      <div className="absolute top-8 left-4 right-4 flex items-center justify-between z-50">
         <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10 border-2 border-white">
+          <Avatar className="w-10 h-10 border-2 border-white/50 shadow-lg">
             <AvatarImage src={currentStatus.user?.profile_photo} />
-            <AvatarFallback>{currentStatus.user?.name?.charAt(0)}</AvatarFallback>
+            <AvatarFallback className="bg-blue-600 text-white font-bold">{currentStatus.user?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className="text-white">
-            <p className="font-bold text-sm">{currentStatus.user?.name}</p>
-            <p className="text-[10px] opacity-80">{formatDistanceToNow(new Date(currentStatus.created_at), { addSuffix: true })}</p>
+          <div className="text-white drop-shadow-md">
+            <p className="font-bold text-sm leading-tight">{currentStatus.user?.name}</p>
+            <p className="text-[10px] opacity-70">{formatDistanceToNow(new Date(currentStatus.created_at), { addSuffix: true })}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={(e) => { e.stopPropagation(); setIsPaused(!isPaused); }} 
-            className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            {isPaused ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
+          <button onClick={(e) => { e.stopPropagation(); setIsPaused(!isPaused); }} className="text-white p-2 hover:bg-white/10 rounded-full transition-colors backdrop-blur-sm">
+            {isPaused ? <Play className="w-6 h-6 fill-current" /> : <Pause className="w-6 h-6 fill-current" />}
           </button>
-          <button onClick={onClose} className="text-white p-2 hover:bg-white/10 rounded-full">
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-white p-2 hover:bg-white/10 rounded-full backdrop-blur-sm">
             <X className="w-6 h-6" />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center p-0 relative">
         {currentStatus.media_type === 'text' ? (
-          <div className="text-center text-white text-2xl font-bold px-8">
+          <div className="w-full h-full flex items-center justify-center text-center text-white text-2xl font-bold px-10" style={{ background: currentStatus.background_color || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
             {currentStatus.content}
           </div>
-        ) : currentStatus.media_type === 'image' ? (
-          <img src={currentStatus.media_url} className="max-w-full max-h-full object-contain shadow-2xl" alt="Status" />
         ) : (
-          <video src={currentStatus.media_url} className="max-w-full max-h-full" autoPlay playsInline />
+          currentStatus.media_type === 'image' 
+            ? <img src={currentStatus.media_url} className="w-full h-full object-contain" alt="Status" />
+            : <video src={currentStatus.media_url} className="w-full h-full object-contain" autoPlay playsInline onEnded={() => { if(currentIndex < userStatuses.length -1) setCurrentIndex(currentIndex + 1); else onClose(); }} />
         )}
+
+        <div className="absolute inset-0 flex">
+          <div className="w-1/3 h-full cursor-pointer active:bg-white/5" onClick={(e) => { e.stopPropagation(); if (currentIndex > 0) { setCurrentIndex(currentIndex - 1); setProgress(0); } }} />
+          <div className="w-2/3 h-full cursor-pointer active:bg-white/5" onClick={(e) => { e.stopPropagation(); if (currentIndex < userStatuses.length - 1) { setCurrentIndex(currentIndex + 1); setProgress(0); } else { onClose(); } }} />
+        </div>
       </div>
 
-      <div className="absolute inset-0 flex">
-        <div className="w-1/3 h-full cursor-pointer" onClick={() => {
-          if (currentIndex > 0) { setCurrentIndex(currentIndex - 1); setProgress(0); }
-        }} />
-        <div className="w-2/3 h-full cursor-pointer" onClick={() => {
-          if (currentIndex < userStatuses.length - 1) { setCurrentIndex(currentIndex + 1); setProgress(0); }
-          else { onClose(); }
-        }} />
+      {/* Viewed By Section (Owner Only) */}
+      {userId === currentUser.id && (
+        <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowViewers(true); }}
+            className="flex flex-col items-center gap-1 text-white/80 hover:text-white transition-colors"
+          >
+            <div className="bg-white/10 backdrop-blur-md p-3 rounded-full border border-white/20">
+              <Eye className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-widest">Viewers</span>
+          </button>
+        </div>
+      )}
+
+      {showViewers && (
+        <StatusViewsModal statusId={currentStatus.id} onClose={() => setShowViewers(false)} />
+      )}
+    </div>
+  );
+}
+
+function StatusViewsModal({ statusId, onClose }: { statusId: string, onClose: () => void }) {
+  const [viewers, setViewers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchViewers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('status_views')
+          .select('*, viewer:users(*)')
+          .eq('status_id', statusId)
+          .order('viewed_at', { ascending: false });
+        if (error) throw error;
+        setViewers(data || []);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+    };
+    fetchViewers();
+  }, [statusId]);
+
+  return (
+    <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-md h-[70vh] sm:h-auto sm:max-h-[80vh] flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="p-5 border-b flex items-center justify-between">
+          <div className="flex flex-col">
+            <h3 className="font-bold text-lg text-gray-900">Viewed by</h3>
+            <p className="text-xs text-gray-500 font-medium">{viewers.length} connections</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-6 h-6 text-gray-500" /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {loading ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-10 h-10 animate-spin text-blue-600" /></div>
+          ) : viewers.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-8 h-8 text-gray-300" />
+              </div>
+              <p className="text-gray-500 font-medium">No one has viewed yet.</p>
+              <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">Updates take a few seconds</p>
+            </div>
+          ) : (
+            viewers.map(v => (
+              <div key={v.id} className="flex items-center gap-4 group p-2 hover:bg-gray-50 rounded-2xl transition-colors">
+                <Avatar className="w-12 h-12 border border-gray-100 shadow-sm">
+                  <AvatarImage src={v.viewer?.profile_photo} />
+                  <AvatarFallback className="bg-blue-600 text-white font-bold">{v.viewer?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-gray-900 truncate">{v.viewer?.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{v.viewer?.profession || 'Professional'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-400 font-bold uppercase">{formatDistanceToNow(new Date(v.viewed_at), { addSuffix: true })}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
